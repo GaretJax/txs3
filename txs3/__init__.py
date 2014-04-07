@@ -10,6 +10,6 @@ from .api import Service
 from .client import S3Client
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __url__ = 'https://github.com/GaretJax/txs3'
 __all__ = ['Service', 'S3Client']
