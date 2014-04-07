@@ -263,7 +263,6 @@ class Object(object):
 
     * HEAD Object
     * POST Object restore
-    * PUT Object - Copy
     * Initiate Multipart Upload
     * Upload Part
     * Upload Part - Copy
@@ -311,6 +310,33 @@ class Object(object):
             return d
 
         d = self._request('PUT', body=contentsProducer, processResponse=False)
+        d.addCallback(cbResponse)
+        return d
+
+    def copyTo(self, toObj):
+        return toObj.copyFrom(self)
+
+    def copyFrom(self, fromObj):
+        # TODO: See self.upload
+
+        headers = {
+            'x-amz-copy-source': '{}/{}'.format(fromObj._bucket.name,
+                                                fromObj.key),
+            'x-amz-metadata-directive': 'COPY',
+
+        }
+
+        def cbProcessed(response, version):
+            return version
+
+        def cbResponse(response):
+            version = response.headers.getRawHeaders(
+                'x-amz-version-id', [None])[0]
+            d = defer.maybeDeferred(self._client.processResponse, response)
+            d.addCallback(cbProcessed, version)
+            return d
+
+        d = self._request('PUT', headers=headers, processResponse=False)
         d.addCallback(cbResponse)
         return d
 
